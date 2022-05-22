@@ -1,0 +1,44 @@
+.add-symbol .mat-form-field {
+    margin: 12px;
+    width: 150px;
+    font-size: 14px;
+}
+
+.add-symbol .mat-raised-button {
+    margin-bottom: 16px;
+    font-size: 14px;
+}
+
+.symbol-def {
+    margin-right: 10px;
+}
+
+.mat-card {
+    height: 50px;
+}
+
+.terms {
+    width: 100%;
+}
+
+ngx-graph {
+    pointer-events: none;
+}
+
+.mat-expansion-panel {
+    margin: 4px;
+}
+
+.divide-position {
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.replace {
+    margin-left: 10px;
+}
+
+.add-subt-entry {
+    margin-left: 10px;
+}

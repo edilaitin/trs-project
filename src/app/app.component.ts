@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { MathContent } from './math/math-content';
 
 @Component({
   selector: 'app-root',
