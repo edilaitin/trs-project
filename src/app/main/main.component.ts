@@ -4,7 +4,7 @@ import { MathContent } from '../math/math-content';
 import { SignatureEntry } from '../types';
 // const TheDAG = require('the-dag');
 import * as _ from 'lodash';
-import { arrayToString, Term } from '../utils/terms';
+import { Term } from '../utils/terms';
 import { ChangeDetectorRef } from '@angular/core';
 import { Substitution } from '../utils/substitutions';
 
@@ -25,10 +25,12 @@ export class MainComponent implements OnInit {
   mathPositions: MathContent[] = [];
   mathPositionsReplace: MathContent[] = [];
   mathApplySubt: MathContent[] = [];
+  mathComposeSubt: MathContent[] = [];
 
   redrawM: boolean[] = [];
   redrawMR: boolean[] = [];
   redrawMA: boolean[] = [];
+  redrawMC: boolean[] = [];
 
   clusterTerms: { id: string; label: string; childNodeIds: string[]; }[][] = [];
   clusterTermsReplaceBefore: { id: string; label: string; childNodeIds: string[]; }[][] = [];
@@ -36,9 +38,11 @@ export class MainComponent implements OnInit {
 
   selectedTermReplace: Term[] = [];
   selectedTermApplySubst: Term[] = [];
+  selectedComposeSubst: Substitution[] = [];
 
   replacementTerms: Term[] = [];
   subsAppliedTerms: Term[] = [];
+  composedSubstitutions: Substitution[] = [];
 
   substEntryFromControls: FormControl[] = [];
   substEntryToControls: FormControl[] = [];
@@ -231,6 +235,26 @@ export class MainComponent implements OnInit {
     }
   }
 
+  getMathCompositionApply(substitution: Substitution, index: number) {
+    try {
+      const composeSubstitution = this.selectedComposeSubst[index];
+      if (_.isNil(composeSubstitution)) return {
+        latex: `Choose substitution`
+      };
+      const result = substitution.composeSubstitution(composeSubstitution);
+      this.composedSubstitutions[index] = result;
+      const indexComp = _.indexOf(this.substitutions, composeSubstitution)
+      return {
+        mathml: `Composition of substitutions: $subst_${index} \\circ subst_${indexComp} = ${substitution.asLatexString()} \\circ ${composeSubstitution.asLatexString()} = ${result.asLatexString()}$`
+      };
+    }
+    catch {
+      return {
+        latex: `Error`
+      }
+    }
+  }
+
   isValidPosition(term: Term, index: number, type: 'position' | 'replace') {
     const pos = type === 'position' ?
       this.positionControls[index].value : this.positionReplaceControls[index].value
@@ -316,18 +340,22 @@ export class MainComponent implements OnInit {
     this.substEntryToControls.push(new FormControl('', [Validators.required]))
     this.showSubstMath.push(true);
     this.redrawMA.push(true);
+    this.redrawMC.push(true);
 
     const index = _.size(this.mathApplySubt);
     this.mathApplySubt[index] = this.getMathSubstitutionApply(substitution, index);
+    this.mathComposeSubt[index] = this.getMathCompositionApply(substitution, index);
   }
 
   removeFromSubstitutions(index: number) {
     this.substitutions.splice(index, 1);
     this.mathApplySubt.splice(index, 1);
+    this.mathComposeSubt.splice(index, 1);
     this.substEntryFromControls.splice(index, 1);
     this.substEntryToControls.splice(index, 1);
     this.showSubstMath.splice(index, 1);
     this.redrawMA.splice(index, 1);
+    this.redrawMC.splice(index, 1);
   }
 
   getMathSubstitution(substitution: Substitution, index: number): MathContent {
@@ -359,12 +387,18 @@ export class MainComponent implements OnInit {
   }
 
   redrawMathApplySubt(substitution: Substitution, index: number) {
-    setTimeout(() => { 
+    setTimeout(() => {
       this.mathApplySubt[index] = this.getMathSubstitutionApply(substitution, index);
       this.redrawMA[index] = false;
-      console.log(this.mathApplySubt);
-      
       setTimeout(() => this.redrawMA[index] = true, 50);
+    }, 50);
+  }
+
+  redrawMathComposeSubt(substitution: Substitution, index: number) {
+    setTimeout(() => {
+      this.mathComposeSubt[index] = this.getMathCompositionApply(substitution, index);
+      this.redrawMC[index] = false;
+      setTimeout(() => this.redrawMC[index] = true, 50);
     }, 50);
   }
 

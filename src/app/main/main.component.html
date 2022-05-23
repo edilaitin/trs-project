@@ -1,217 +1,96 @@
-<div fxLayout="row" fxLayoutAlign="space-around stretch">
-    <div>
-        <h3>Signature Definition</h3>
-        <div *ngFor="let definition of signature; let i = index">
-            <mat-card class="mat-elevation-z0" fxLayout="row" fxLayoutAlign="space-between center">
-                <div class="symbol-def" [appMath]="getMathSymbol(definition)"></div>
-                <button mat-icon-button color="warn" (click)="removeFromSignature(i)">
-                    <mat-icon>delete</mat-icon>
-                </button>
-            </mat-card>
+<div fxLayout="column">
+    <div fxLayout="row" fxLayoutAlign="space-around stretch">
+        <div>
+            <h3>Signature Definition</h3>
+            <div *ngFor="let definition of signature; let i = index">
+                <mat-card class="mat-elevation-z0" fxLayout="row" fxLayoutAlign="space-between center">
+                    <div class="symbol-def" [appMath]="getMathSymbol(definition)"></div>
+                    <button mat-icon-button color="warn" (click)="removeFromSignature(i)">
+                        <mat-icon>delete</mat-icon>
+                    </button>
+                </mat-card>
+            </div>
+
+            <div class="add-symbol" fxLayout="row" fxLayoutAlign="start center">
+                <mat-form-field appearance="fill">
+                    <mat-label>Function Symbol</mat-label>
+                    <input matInput type="text" placeholder="Ex: f" [formControl]="symbolControl">
+                    <mat-error *ngIf="symbolControl.invalid">{{getSymbolErrorMessage()}}</mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="fill">
+                    <mat-label>Arrity</mat-label>
+                    <input matInput type="number" placeholder="Ex. 2" [formControl]="arrityControl" min="0">
+                    <mat-error *ngIf="arrityControl.invalid">Min arrity: 0</mat-error>
+                </mat-form-field>
+
+                <button mat-raised-button color="primary" [disabled]="!isValidSymbolEntry()"
+                    (click)="addToSignature()">Add</button>
+            </div>
         </div>
+        <mat-divider [vertical]="true"></mat-divider>
+        <div>
+            <h3>Allowed variables</h3>
+            <div *ngFor="let variable of allowedVariables; let i = index">
+                <mat-card class="mat-elevation-z0" fxLayout="row" fxLayoutAlign="space-between center">
+                    <div class="symbol-def" [appMath]="getMathVariable(variable)"></div>
+                    <button mat-icon-button color="warn" (click)="removeFromVariables(i)">
+                        <mat-icon>delete</mat-icon>
+                    </button>
+                </mat-card>
+            </div>
 
-        <div class="add-symbol" fxLayout="row" fxLayoutAlign="start center">
-            <mat-form-field appearance="fill">
-                <mat-label>Function Symbol</mat-label>
-                <input matInput type="text" placeholder="Ex: f" [formControl]="symbolControl">
-                <mat-error *ngIf="symbolControl.invalid">{{getSymbolErrorMessage()}}</mat-error>
-            </mat-form-field>
+            <div class="add-symbol" fxLayout="row" fxLayoutAlign="start center">
+                <mat-form-field appearance="fill">
+                    <mat-label>Variable name</mat-label>
+                    <input matInput type="text" placeholder="Ex: x" [formControl]="variableControl">
+                    <mat-error *ngIf="variableControl.invalid">{{getVariableErrorMessage()}}</mat-error>
+                </mat-form-field>
 
-            <mat-form-field appearance="fill">
-                <mat-label>Arrity</mat-label>
-                <input matInput type="number" placeholder="Ex. 2" [formControl]="arrityControl" min="0">
-                <mat-error *ngIf="arrityControl.invalid">Min arrity: 0</mat-error>
-            </mat-form-field>
-
-            <button mat-raised-button color="primary" [disabled]="!isValidSymbolEntry()"
-                (click)="addToSignature()">Add</button>
+                <button mat-raised-button color="primary" [disabled]="!isValidVariableEntry()"
+                    (click)="addToVariables()">Add</button>
+            </div>
         </div>
     </div>
-    <mat-divider [vertical]="true"></mat-divider>
-    <div>
-        <h3>Allowed variables</h3>
-        <div *ngFor="let variable of allowedVariables; let i = index">
-            <mat-card class="mat-elevation-z0" fxLayout="row" fxLayoutAlign="space-between center">
-                <div class="symbol-def" [appMath]="getMathVariable(variable)"></div>
-                <button mat-icon-button color="warn" (click)="removeFromVariables(i)">
-                    <mat-icon>delete</mat-icon>
-                </button>
-            </mat-card>
-        </div>
 
-        <div class="add-symbol" fxLayout="row" fxLayoutAlign="start center">
-            <mat-form-field appearance="fill">
-                <mat-label>Variable name</mat-label>
-                <input matInput type="text" placeholder="Ex: x" [formControl]="variableControl">
-                <mat-error *ngIf="variableControl.invalid">{{getVariableErrorMessage()}}</mat-error>
-            </mat-form-field>
+    <mat-divider></mat-divider>
 
-            <button mat-raised-button color="primary" [disabled]="!isValidVariableEntry()"
-                (click)="addToVariables()">Add</button>
-        </div>
-    </div>
-</div>
-
-<mat-divider></mat-divider>
-
-<div fxLayout="row" fxLayoutAlign="space-around stretch">
-    <div class="terms">
-        <h3 align="center">Terms</h3>
-        <div *ngFor="let term of terms; let i = index">
-            <mat-expansion-panel class="mat-elevation-z2">
-                <mat-expansion-panel-header>
-                    <mat-card class="mat-elevation-z0" fxLayout="row" fxLayoutAlign="space-between center">
-                        <div class="symbol-def" [appMath]="getMathTerm(term, i)"></div>
-                        <button mat-icon-button color="warn" (click)="removeFromTerms(i)">
-                            <mat-icon>delete</mat-icon>
-                        </button>
-                    </mat-card>
-                </mat-expansion-panel-header>
+    <div fxLayout="row" fxLayoutAlign="space-around stretch">
+        <div class="terms">
+            <h3 align="center">Terms</h3>
+            <div *ngFor="let term of terms; let i = index">
                 <mat-expansion-panel class="mat-elevation-z2">
                     <mat-expansion-panel-header>
-                        <mat-panel-title>
-                            Tree representation
-                        </mat-panel-title>
+                        <mat-card class="mat-elevation-z0" fxLayout="row" fxLayoutAlign="space-between center">
+                            <div class="symbol-def" [appMath]="getMathTerm(term, i)"></div>
+                            <button mat-icon-button color="warn" (click)="removeFromTerms(i)">
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                        </mat-card>
                     </mat-expansion-panel-header>
-                    <div fxLayout="column" fxLayoutAlign="center center">
-                        <div fxLayout="row" fxLayoutAlign="start start">
-                            <ngx-graph class="chart-container" [draggingEnabled]="false" [panningEnabled]="false"
-                                [autoCenter]="true" [enableZoom]="false" [view]="[500, 450]" [autoZoom]="true"
-                                [layoutSettings]="{orientation: 'TB'}" [nodes]="term.nodes" [links]="term.links"
-                                layout="dagre">
-                                <ng-template #defsTemplate>
-                                    <svg:marker id="arrow" viewBox="0 -5 10 10" refX="8" refY="0" markerWidth="4"
-                                        markerHeight="4" orient="auto">
-                                        <svg:path d="M0,-5L10,0L0,5" class="arrow-head" />
-                                    </svg:marker>
-                                </ng-template>
-                                <ng-template #nodeTemplate let-node>
-                                    <svg:g class="node" ngx-tooltip>
-                                        <svg:circle cx="16.5" cy="27" r="25" fill="#fff" stroke-width="1"
-                                            stroke="#000" />
-                                        <svg:text alignment-baseline="central" [attr.x]="-15" font-size="1.5em"
-                                            [attr.y]="-10">
-                                            {{node.pos}}
-                                        </svg:text>
-                                        <svg:text alignment-baseline="central" [attr.x]="10" font-size="2em"
-                                            [attr.y]="node.dimension.height / 2.7">
-                                            {{node.label}}
-                                        </svg:text>
-                                    </svg:g>
-                                </ng-template>
-                            </ngx-graph>
+                    <mat-expansion-panel class="mat-elevation-z2">
+                        <mat-expansion-panel-header>
+                            <mat-panel-title>
+                                Position
+                            </mat-panel-title>
+                        </mat-expansion-panel-header>
+                        <div fxLayout="row" fxLayoutAlign="space-between center">
+                            <mat-form-field appearance="fill">
+                                <mat-label>Enter Position</mat-label>
+                                <input matInput [formControl]="positionControls[i]" (input)="redrawMath(term, i)">
+                            </mat-form-field>
+                            <mat-error *ngIf="!isValidPosition(term, i, 'position')">
+                                <h4>Invalid position</h4>
+                            </mat-error>
                         </div>
-                    </div>
-                </mat-expansion-panel>
-                <mat-expansion-panel class="mat-elevation-z2">
-                    <mat-expansion-panel-header>
-                        <mat-panel-title>
-                            Position
-                        </mat-panel-title>
-                    </mat-expansion-panel-header>
-                    <div fxLayout="row" fxLayoutAlign="space-between center">
-                        <mat-form-field appearance="fill">
-                            <mat-label>Enter Position</mat-label>
-                            <input matInput [formControl]="positionControls[i]" (input)="redrawMath(term, i)">
-                        </mat-form-field>
-                        <mat-error *ngIf="!isValidPosition(term, i, 'position')">
-                            <h4>Invalid position</h4>
-                        </mat-error>
-                    </div>
-                    <div class="symbol-def" *ngIf="isValidPosition(term, i, 'position') && !refreshMath(term, i)"
-                        fxLayout="column" fxLayoutAlign="center start">
-                        <div class="symbol-def" [appMath]="mathPositions[i]"></div>
-                        <mat-divider class="divide-position"></mat-divider>
-                        <ngx-graph class="chart-container" [draggingEnabled]="false" [panningEnabled]="false"
-                            [autoCenter]="true" [enableZoom]="false" [view]="[500, 450]" [autoZoom]="true"
-                            [layoutSettings]="{orientation: 'TB'}" [nodes]="term.nodes" [links]="term.links"
-                            [clusters]="clusterTerms[i]" layout="dagreCluster">
-
-                            <ng-template #defsTemplate>
-                                <svg:marker id="arrow" viewBox="0 -5 10 10" refX="8" refY="0" markerWidth="4"
-                                    markerHeight="4" orient="auto">
-                                    <svg:path d="M0,-5L10,0L0,5" class="arrow-head" />
-                                </svg:marker>
-                            </ng-template>
-                            <ng-template #nodeTemplate let-node>
-                                <svg:g class="node" ngx-tooltip>
-                                    <svg:circle cx="16.5" cy="27" r="25" fill="#fff" stroke-width="1" stroke="#000" />
-                                    <svg:text alignment-baseline="central" [attr.x]="-15" font-size="1.5em"
-                                        [attr.y]="-10">
-                                        {{node.pos}}
-                                    </svg:text>
-                                    <svg:text alignment-baseline="central" [attr.x]="10" font-size="2em"
-                                        [attr.y]="node.dimension.height / 2.7">
-                                        {{node.label}}
-                                    </svg:text>
-                                </svg:g>
-                            </ng-template>
-                        </ngx-graph>
-                    </div>
-                </mat-expansion-panel>
-                <mat-expansion-panel class="mat-elevation-z2">
-                    <mat-expansion-panel-header>
-                        <mat-panel-title>
-                            Replacement at position
-                        </mat-panel-title>
-                    </mat-expansion-panel-header>
-                    <div fxLayout="row" fxLayoutAlign="start center">
-                        <mat-form-field class="replace" appearance="fill">
-                            <mat-label>Replacement term</mat-label>
-                            <mat-select [(value)]="selectedTermReplace[i]">
-                                <mat-option *ngFor="let term of terms" [value]="term"
-                                    (onSelectionChange)="redrawMathReplace(term, i)">
-                                    {{term.asString}}
-                                </mat-option>
-                            </mat-select>
-                        </mat-form-field>
-                        <mat-form-field class="replace" appearance="fill">
-                            <mat-label>Enter Position</mat-label>
-                            <input matInput [formControl]="positionReplaceControls[i]"
-                                (input)="redrawMathReplace(term, i)">
-                        </mat-form-field>
-                        <mat-error class="replace" *ngIf="!isValidPosition(term, i, 'replace')">
-                            <h4>Invalid position</h4>
-                        </mat-error>
-                    </div>
-                    <div class="symbol-def" *ngIf="isValidPosition(term, i, 'replace') && !refreshMathReplace(term, i)"
-                        fxLayout="column" fxLayoutAlign="center">
-                        <div class="symbol-def" [appMath]="mathPositionsReplace[i]"></div>
-                        <mat-divider class="divide-position"></mat-divider>
-                        <div fxLayout="row" fxLayoutAlign="center center">
-                            <h4>Before: </h4>
+                        <div class="symbol-def" *ngIf="isValidPosition(term, i, 'position') && !refreshMath(term, i)"
+                            fxLayout="column" fxLayoutAlign="center start">
+                            <div class="symbol-def" [appMath]="mathPositions[i]"></div>
+                            <mat-divider class="divide-position"></mat-divider>
                             <ngx-graph class="chart-container" [draggingEnabled]="false" [panningEnabled]="false"
                                 [autoCenter]="true" [enableZoom]="false" [view]="[500, 450]" [autoZoom]="true"
                                 [layoutSettings]="{orientation: 'TB'}" [nodes]="term.nodes" [links]="term.links"
-                                [clusters]="clusterTermsReplaceBefore[i]" layout="dagreCluster">
-
-                                <ng-template #defsTemplate>
-                                    <svg:marker id="arrow" viewBox="0 -5 10 10" refX="8" refY="0" markerWidth="4"
-                                        markerHeight="4" orient="auto">
-                                        <svg:path d="M0,-5L10,0L0,5" class="arrow-head" />
-                                    </svg:marker>
-                                </ng-template>
-                                <ng-template #nodeTemplate let-node>
-                                    <svg:g class="node" ngx-tooltip>
-                                        <svg:circle cx="16.5" cy="27" r="25" fill="#fff" stroke-width="1"
-                                            stroke="#000" />
-                                        <svg:text alignment-baseline="central" [attr.x]="-15" font-size="1.5em"
-                                            [attr.y]="-10">
-                                            {{node.pos}}
-                                        </svg:text>
-                                        <svg:text alignment-baseline="central" [attr.x]="10" font-size="2em"
-                                            [attr.y]="node.dimension.height / 2.7">
-                                            {{node.label}}
-                                        </svg:text>
-                                    </svg:g>
-                                </ng-template>
-                            </ngx-graph>
-                            <h4>After: </h4>
-                            <ngx-graph class="chart-container" [draggingEnabled]="false" [panningEnabled]="false"
-                                [autoCenter]="true" [enableZoom]="false" [view]="[500, 450]" [autoZoom]="true"
-                                [layoutSettings]="{orientation: 'TB'}" [nodes]="replacementTerms[i].nodes"
-                                [links]="replacementTerms[i].links" [clusters]="clusterTermsReplaceAfter[i]"
-                                layout="dagreCluster">
+                                [clusters]="clusterTerms[i]" layout="dagreCluster">
 
                                 <ng-template #defsTemplate>
                                     <svg:marker id="arrow" viewBox="0 -5 10 10" refX="8" refY="0" markerWidth="4"
@@ -235,102 +114,206 @@
                                 </ng-template>
                             </ngx-graph>
                         </div>
-                    </div>
+                    </mat-expansion-panel>
+                    <mat-expansion-panel class="mat-elevation-z2">
+                        <mat-expansion-panel-header>
+                            <mat-panel-title>
+                                Replacement at position
+                            </mat-panel-title>
+                        </mat-expansion-panel-header>
+                        <div fxLayout="row" fxLayoutAlign="start center">
+                            <mat-form-field class="replace" appearance="fill">
+                                <mat-label>Replacement term</mat-label>
+                                <mat-select [(value)]="selectedTermReplace[i]">
+                                    <mat-option *ngFor="let term of terms" [value]="term"
+                                        (onSelectionChange)="redrawMathReplace(term, i)">
+                                        {{term.asString}}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                            <mat-form-field class="replace" appearance="fill">
+                                <mat-label>Enter Position</mat-label>
+                                <input matInput [formControl]="positionReplaceControls[i]"
+                                    (input)="redrawMathReplace(term, i)">
+                            </mat-form-field>
+                            <mat-error class="replace" *ngIf="!isValidPosition(term, i, 'replace')">
+                                <h4>Invalid position</h4>
+                            </mat-error>
+                        </div>
+                        <div class="symbol-def"
+                            *ngIf="isValidPosition(term, i, 'replace') && !refreshMathReplace(term, i)"
+                            fxLayout="column" fxLayoutAlign="center">
+                            <div class="symbol-def" [appMath]="mathPositionsReplace[i]"></div>
+                            <mat-divider class="divide-position"></mat-divider>
+                            <div fxLayout="row" fxLayoutAlign="center center">
+                                <h4>Before: </h4>
+                                <ngx-graph class="chart-container" [draggingEnabled]="false" [panningEnabled]="false"
+                                    [autoCenter]="true" [enableZoom]="false" [view]="[500, 450]" [autoZoom]="true"
+                                    [layoutSettings]="{orientation: 'TB'}" [nodes]="term.nodes" [links]="term.links"
+                                    [clusters]="clusterTermsReplaceBefore[i]" layout="dagreCluster">
+
+                                    <ng-template #defsTemplate>
+                                        <svg:marker id="arrow" viewBox="0 -5 10 10" refX="8" refY="0" markerWidth="4"
+                                            markerHeight="4" orient="auto">
+                                            <svg:path d="M0,-5L10,0L0,5" class="arrow-head" />
+                                        </svg:marker>
+                                    </ng-template>
+                                    <ng-template #nodeTemplate let-node>
+                                        <svg:g class="node" ngx-tooltip>
+                                            <svg:circle cx="16.5" cy="27" r="25" fill="#fff" stroke-width="1"
+                                                stroke="#000" />
+                                            <svg:text alignment-baseline="central" [attr.x]="-15" font-size="1.5em"
+                                                [attr.y]="-10">
+                                                {{node.pos}}
+                                            </svg:text>
+                                            <svg:text alignment-baseline="central" [attr.x]="10" font-size="2em"
+                                                [attr.y]="node.dimension.height / 2.7">
+                                                {{node.label}}
+                                            </svg:text>
+                                        </svg:g>
+                                    </ng-template>
+                                </ngx-graph>
+                                <h4>After: </h4>
+                                <ngx-graph class="chart-container" [draggingEnabled]="false" [panningEnabled]="false"
+                                    [autoCenter]="true" [enableZoom]="false" [view]="[500, 450]" [autoZoom]="true"
+                                    [layoutSettings]="{orientation: 'TB'}" [nodes]="replacementTerms[i].nodes"
+                                    [links]="replacementTerms[i].links" [clusters]="clusterTermsReplaceAfter[i]"
+                                    layout="dagreCluster">
+
+                                    <ng-template #defsTemplate>
+                                        <svg:marker id="arrow" viewBox="0 -5 10 10" refX="8" refY="0" markerWidth="4"
+                                            markerHeight="4" orient="auto">
+                                            <svg:path d="M0,-5L10,0L0,5" class="arrow-head" />
+                                        </svg:marker>
+                                    </ng-template>
+                                    <ng-template #nodeTemplate let-node>
+                                        <svg:g class="node" ngx-tooltip>
+                                            <svg:circle cx="16.5" cy="27" r="25" fill="#fff" stroke-width="1"
+                                                stroke="#000" />
+                                            <svg:text alignment-baseline="central" [attr.x]="-15" font-size="1.5em"
+                                                [attr.y]="-10">
+                                                {{node.pos}}
+                                            </svg:text>
+                                            <svg:text alignment-baseline="central" [attr.x]="10" font-size="2em"
+                                                [attr.y]="node.dimension.height / 2.7">
+                                                {{node.label}}
+                                            </svg:text>
+                                        </svg:g>
+                                    </ng-template>
+                                </ngx-graph>
+                            </div>
+                        </div>
+                    </mat-expansion-panel>
                 </mat-expansion-panel>
-            </mat-expansion-panel>
-        </div>
+            </div>
 
-        <div class="add-symbol" fxLayout="row" fxLayoutAlign="center center">
-            <mat-form-field appearance="fill">
-                <mat-label>Term</mat-label>
-                <input matInput type="text" placeholder="Ex: f(x, y)" [formControl]="termControl">
-                <mat-error *ngIf="termControl.invalid">{{getTermErrorMessage(termControl)}}</mat-error>
-            </mat-form-field>
+            <div class="add-symbol" fxLayout="row" fxLayoutAlign="center center">
+                <mat-form-field appearance="fill">
+                    <mat-label>Term</mat-label>
+                    <input matInput type="text" placeholder="Ex: f(x, y)" [formControl]="termControl">
+                    <mat-error *ngIf="termControl.invalid">{{getTermErrorMessage(termControl)}}</mat-error>
+                </mat-form-field>
 
-            <button mat-raised-button color="primary" [disabled]="!isValidTermEntry()"
-                (click)="addToTerms()">Add</button>
+                <button mat-raised-button color="primary" [disabled]="!isValidTermEntry()"
+                    (click)="addToTerms()">Add</button>
+            </div>
         </div>
     </div>
-</div>
 
-<mat-divider></mat-divider>
+    <mat-divider></mat-divider>
 
-<div fxLayout="row" fxLayoutAlign="space-around stretch">
-    <div class="terms">
-        <h3 align="center">Substitutions</h3>
-        <div *ngFor="let substitution of substitutions; let i = index">
-            <mat-expansion-panel class="mat-elevation-z2">
-                <mat-expansion-panel-header>
-                    <mat-card class="mat-elevation-z0" fxLayout="row" fxLayoutAlign="space-between center"
-                        *ngIf="showSubstMath[i]">
-                        <div class="symbol-def" [appMath]="getMathSubstitution(substitution, i)"></div>
-                        <button mat-icon-button color="warn" (click)="removeFromSubstitutions(i)">
-                            <mat-icon>delete</mat-icon>
-                        </button>
-                    </mat-card>
-                </mat-expansion-panel-header>
+    <div fxLayout="row" fxLayoutAlign="space-around stretch">
+        <div class="terms">
+            <h3 align="center">Substitutions</h3>
+            <div *ngFor="let substitution of substitutions; let i = index">
                 <mat-expansion-panel class="mat-elevation-z2">
                     <mat-expansion-panel-header>
-                        <mat-panel-title>
-                            Add entry
-                        </mat-panel-title>
+                        <mat-card class="mat-elevation-z0" fxLayout="row" fxLayoutAlign="space-between center"
+                            *ngIf="showSubstMath[i]">
+                            <div class="symbol-def" [appMath]="getMathSubstitution(substitution, i)"></div>
+                            <button mat-icon-button color="warn" (click)="removeFromSubstitutions(i)">
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                        </mat-card>
                     </mat-expansion-panel-header>
-                    <mat-form-field class="add-subt-entry" appearance="fill">
-                        <mat-label>From</mat-label>
-                        <input matInput type="text" placeholder="Ex: x" [formControl]="substEntryFromControls[i]">
-                        <mat-error *ngIf="termControl.invalid">{{getTermErrorMessage(substEntryFromControls[i])}}
-                        </mat-error>
-                    </mat-form-field>
-
-                    <mat-form-field class="add-subt-entry" appearance="fill">
-                        <mat-label>To</mat-label>
-                        <input matInput type="text" placeholder="Ex: f(z, y)" [formControl]="substEntryToControls[i]">
-                        <mat-error *ngIf="termControl.invalid">{{getTermErrorMessage(substEntryToControls[i])}}
-                        </mat-error>
-                    </mat-form-field>
-
-                    <button class="add-subt-entry" mat-raised-button color="primary"
-                        [disabled]="!isValidSubstitutionEntry(i)" (click)="addToSubstEntries(i)">Add</button>
-
-                    <mat-error *ngIf="!isValidSubstitutionEntry(i)">
-                        <h4>Invalid entry (from must be variable)</h4>
-                    </mat-error>
-                </mat-expansion-panel>
-                <mat-expansion-panel class="mat-elevation-z2">
-                    <mat-expansion-panel-header>
-                        <mat-panel-title>
-                            Apply to term
-                        </mat-panel-title>
-                    </mat-expansion-panel-header>
-                    <div fxLayout="row" fxLayoutAlign="start center">
-                        <mat-form-field class="replace" appearance="fill">
-                            <mat-label>Term</mat-label>
-                            <mat-select [(value)]="selectedTermApplySubst[i]">
-                                <mat-option *ngFor="let term of terms" [value]="term"
-                                    (onSelectionChange)="redrawMathApplySubt(substitution, i)">
-                                    {{term.asString}}
-                                </mat-option>
-                            </mat-select>
+                    <mat-expansion-panel class="mat-elevation-z2">
+                        <mat-expansion-panel-header>
+                            <mat-panel-title>
+                                Add entry
+                            </mat-panel-title>
+                        </mat-expansion-panel-header>
+                        <mat-form-field class="add-subt-entry" appearance="fill">
+                            <mat-label>From</mat-label>
+                            <input matInput type="text" placeholder="Ex: x" [formControl]="substEntryFromControls[i]">
+                            <mat-error *ngIf="termControl.invalid">{{getTermErrorMessage(substEntryFromControls[i])}}
+                            </mat-error>
                         </mat-form-field>
-                    </div>
-                    <div class="symbol-def" *ngIf="redrawMA[i]" fxLayout="column" fxLayoutAlign="center">
-                        <div class="symbol-def" [appMath]="mathApplySubt[i]"></div>
-                    </div>
-                </mat-expansion-panel>
-                <mat-expansion-panel class="mat-elevation-z2">
-                    <mat-expansion-panel-header>
-                        <mat-panel-title>
-                            Compose substitution
-                        </mat-panel-title>
-                    </mat-expansion-panel-header>
-                </mat-expansion-panel>
-            </mat-expansion-panel>
-        </div>
 
-        <div class="add-symbol" fxLayout="row" fxLayoutAlign="center center">
-            <button mat-raised-button color="primary" (click)="addToSubstitutions()">Add new substitution</button>
+                        <mat-form-field class="add-subt-entry" appearance="fill">
+                            <mat-label>To</mat-label>
+                            <input matInput type="text" placeholder="Ex: f(z, y)"
+                                [formControl]="substEntryToControls[i]">
+                            <mat-error *ngIf="termControl.invalid">{{getTermErrorMessage(substEntryToControls[i])}}
+                            </mat-error>
+                        </mat-form-field>
+
+                        <button class="add-subt-entry" mat-raised-button color="primary"
+                            [disabled]="!isValidSubstitutionEntry(i)" (click)="addToSubstEntries(i)">Add</button>
+
+                        <mat-error *ngIf="!isValidSubstitutionEntry(i)">
+                            <h4>Invalid entry (from must be variable)</h4>
+                        </mat-error>
+                    </mat-expansion-panel>
+                    <mat-expansion-panel class="mat-elevation-z2">
+                        <mat-expansion-panel-header>
+                            <mat-panel-title>
+                                Apply to term
+                            </mat-panel-title>
+                        </mat-expansion-panel-header>
+                        <div fxLayout="row" fxLayoutAlign="start center">
+                            <mat-form-field class="replace" appearance="fill">
+                                <mat-label>Term</mat-label>
+                                <mat-select [(value)]="selectedTermApplySubst[i]">
+                                    <mat-option *ngFor="let term of terms" [value]="term"
+                                        (onSelectionChange)="redrawMathApplySubt(substitution, i)">
+                                        {{term.asString}}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+                        <div class="symbol-def" *ngIf="redrawMA[i]" fxLayout="column" fxLayoutAlign="center">
+                            <div class="symbol-def" [appMath]="mathApplySubt[i]"></div>
+                        </div>
+                    </mat-expansion-panel>
+                    <mat-expansion-panel class="mat-elevation-z2">
+                        <mat-expansion-panel-header>
+                            <mat-panel-title>
+                                Compose substitution
+                            </mat-panel-title>
+                        </mat-expansion-panel-header>
+                        <div fxLayout="row" fxLayoutAlign="start center">
+                            <mat-form-field class="replace" appearance="fill">
+                                <mat-label>Substitution</mat-label>
+                                <mat-select [(value)]="selectedComposeSubst[i]">
+                                    <mat-option *ngFor="let chosenSubstitution of substitutions; let j = index" [value]="chosenSubstitution"
+                                        (onSelectionChange)="redrawMathComposeSubt(substitution, i)">
+                                        subst{{j}}
+                                    </mat-option>
+                                </mat-select>
+                            </mat-form-field>
+                        </div>
+                        <div class="symbol-def" *ngIf="redrawMC[i]" fxLayout="column" fxLayoutAlign="center">
+                            <div class="symbol-def" [appMath]="mathComposeSubt[i]"></div>
+                        </div>
+                    </mat-expansion-panel>
+                </mat-expansion-panel>
+            </div>
+
+            <div class="add-symbol" fxLayout="row" fxLayoutAlign="center center">
+                <button mat-raised-button color="primary" (click)="addToSubstitutions()">Add new substitution</button>
+            </div>
         </div>
     </div>
-</div>
 
-<mat-divider></mat-divider>
+    <mat-divider></mat-divider>
+</div>

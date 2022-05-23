@@ -41,4 +41,20 @@ export class Substitution {
             return term;
         }
     }
+
+    composeSubstitution(otherSubstitution: Substitution) {
+        const froms = _.concat(_.map(this.entries, e => e.from), _.map(otherSubstitution.entries, e => e.from));
+        const uniqueFroms = _.uniqBy(froms, from => from.asString);
+        const newEntries: SubstitutionEntry[] = [];
+        _.forEach(uniqueFroms, fromTerm => {
+            const toTerm = this.applyToTerm(otherSubstitution.applyToTerm(fromTerm))
+            if (fromTerm.asString != toTerm.asString) {
+                newEntries.push({
+                    from: fromTerm,
+                    to: toTerm
+                })
+            }
+        })
+        return new Substitution(newEntries)
+    }
 }
