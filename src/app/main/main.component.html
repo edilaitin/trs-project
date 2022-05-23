@@ -295,7 +295,8 @@
                             <mat-form-field class="replace" appearance="fill">
                                 <mat-label>Substitution</mat-label>
                                 <mat-select [(value)]="selectedComposeSubst[i]">
-                                    <mat-option *ngFor="let chosenSubstitution of substitutions; let j = index" [value]="chosenSubstitution"
+                                    <mat-option *ngFor="let chosenSubstitution of substitutions; let j = index"
+                                        [value]="chosenSubstitution"
                                         (onSelectionChange)="redrawMathComposeSubt(substitution, i)">
                                         subst{{j}}
                                     </mat-option>
@@ -314,6 +315,61 @@
             </div>
         </div>
     </div>
-
     <mat-divider></mat-divider>
+    <div fxLayout="row" fxLayoutAlign="space-around stretch">
+        <div class="terms">
+            <h3 align="center">Unification</h3>
+            <div *ngFor="let setOfEquations of setsOfEquations; let i = index">
+                <mat-expansion-panel class="mat-elevation-z2">
+                    <mat-expansion-panel-header>
+                        <mat-card class="mat-elevation-z0" fxLayout="row" fxLayoutAlign="space-between center"
+                            *ngIf="showSetEqMath[i]">
+                            <div class="symbol-def" [appMath]="getMathEquationsSet(setOfEquations, i)"></div>
+                            <button mat-icon-button color="warn" (click)="removeFromSetsOfEquations(i)">
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                        </mat-card>
+                    </mat-expansion-panel-header>
+                    <mat-expansion-panel class="mat-elevation-z2">
+                        <mat-expansion-panel-header>
+                            <mat-panel-title>
+                                Add equation
+                            </mat-panel-title>
+                        </mat-expansion-panel-header>
+                        <mat-form-field class="add-subt-entry" appearance="fill">
+                            <mat-label>Left</mat-label>
+                            <input matInput type="text" placeholder="Ex: x" [formControl]="eqSetEntryLeftControls[i]">
+                        </mat-form-field>
+
+                        <mat-form-field class="add-subt-entry" appearance="fill">
+                            <mat-label>Right</mat-label>
+                            <input matInput type="text" placeholder="Ex: f(z, y)"
+                                [formControl]="eqSetEntryRightControls[i]">
+                        </mat-form-field>
+
+                        <button class="add-subt-entry" mat-raised-button color="primary"
+                            [disabled]="!isValidEqSetEntry(i)" (click)="addToEqSet(i)">Add</button>
+
+                        <mat-error *ngIf="!isValidEqSetEntry(i)">
+                            <h4>Invalid equation</h4>
+                        </mat-error>
+                    </mat-expansion-panel>
+                    <mat-expansion-panel class="mat-elevation-z2">
+                        <mat-expansion-panel-header>
+                            <mat-panel-title>
+                                Unification
+                            </mat-panel-title>
+                        </mat-expansion-panel-header>
+                        <div class="symbol-def" *ngIf="redrawMGU[i]" fxLayout="column" fxLayoutAlign="center">
+                            <div class="symbol-def" [appMath]="mathMGU[i]"></div>
+                        </div>
+                    </mat-expansion-panel>
+                </mat-expansion-panel>
+            </div>
+            <div class="add-symbol" fxLayout="row" fxLayoutAlign="center center">
+                <button mat-raised-button color="primary" (click)="addToSetsOfEquations()">Add new set of
+                    equations</button>
+            </div>
+        </div>
+    </div>
 </div>

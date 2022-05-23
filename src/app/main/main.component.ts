@@ -7,6 +7,7 @@ import * as _ from 'lodash';
 import { Term } from '../utils/terms';
 import { ChangeDetectorRef } from '@angular/core';
 import { Substitution } from '../utils/substitutions';
+import { SetOfEquations } from '../utils/unification';
 
 @Component({
   selector: 'app-main',
@@ -26,11 +27,13 @@ export class MainComponent implements OnInit {
   mathPositionsReplace: MathContent[] = [];
   mathApplySubt: MathContent[] = [];
   mathComposeSubt: MathContent[] = [];
+  mathMGU: MathContent[] = [];
 
   redrawM: boolean[] = [];
   redrawMR: boolean[] = [];
   redrawMA: boolean[] = [];
   redrawMC: boolean[] = [];
+  redrawMGU: boolean[] = [];
 
   clusterTerms: { id: string; label: string; childNodeIds: string[]; }[][] = [];
   clusterTermsReplaceBefore: { id: string; label: string; childNodeIds: string[]; }[][] = [];
@@ -47,7 +50,11 @@ export class MainComponent implements OnInit {
   substEntryFromControls: FormControl[] = [];
   substEntryToControls: FormControl[] = [];
 
+  eqSetEntryLeftControls: FormControl[] = [];
+  eqSetEntryRightControls: FormControl[] = [];
+
   showSubstMath: boolean[] = [];
+  showSetEqMath: boolean[] = [];
 
   constructor(private cd: ChangeDetectorRef) { }
 
@@ -58,7 +65,8 @@ export class MainComponent implements OnInit {
   ]
   allowedVariables: string[] = ["x", "y", "z"];
   terms: Term[] = [];
-  substitutions: Substitution[] = []
+  substitutions: Substitution[] = [];
+  setsOfEquations: SetOfEquations[] = [];
 
   getSymbolErrorMessage() {
     if (this.symbolControl.hasError('required')) {
@@ -143,7 +151,6 @@ export class MainComponent implements OnInit {
   addToTerms() {
     const inputString = this.termControl.value;
     const term = new Term(this.signature, this.allowedVariables, inputString);
-    console.log(term);
 
     this.terms.push(term);
     this.termControl.reset();
@@ -249,6 +256,27 @@ export class MainComponent implements OnInit {
       };
     }
     catch {
+      return {
+        latex: `Error`
+      }
+    }
+  }
+
+  getMathUnification(eqSet: SetOfEquations, index: number) {
+    try {
+      const result = eqSet.getMGU();
+      if (result) {
+        return {
+          mathml: `$${result.asLatexString()}$`
+        };
+      } else {
+        return {
+          latex: `No MGU found`
+        }
+      }
+    }
+    catch(err) {
+      console.log(err);
       return {
         latex: `Error`
       }
@@ -381,8 +409,10 @@ export class MainComponent implements OnInit {
 
   isValidSubstitutionEntry(index: number) {
     if (this.substEntryFromControls[index].invalid || this.substEntryToControls[index].invalid) return false;
-    const termFrom = new Term(this.signature, this.allowedVariables, this.substEntryFromControls[index].value);
-    if (!termFrom.isVariable()) return false;
+    try {
+      const termFrom = new Term(this.signature, this.allowedVariables, this.substEntryFromControls[index].value);
+      if (!termFrom.isVariable()) return false;
+    } catch { return false; }
     return true;
   }
 
@@ -401,6 +431,59 @@ export class MainComponent implements OnInit {
       setTimeout(() => this.redrawMC[index] = true, 50);
     }, 50);
   }
+
+  addToSetsOfEquations() {
+    const setOfEquations = new SetOfEquations();
+    this.setsOfEquations.push(setOfEquations);
+
+    this.eqSetEntryLeftControls.push(new FormControl('', [Validators.required]));
+    this.eqSetEntryRightControls.push(new FormControl('', [Validators.required]))
+    this.showSetEqMath.push(true);
+    this.redrawMGU.push(true);
+    const index = _.size(this.setsOfEquations);
+    this.mathMGU.push(this.getMathUnification(setOfEquations, index));
+  }
+
+  removeFromSetsOfEquations(index: number) {
+    this.setsOfEquations.splice(index, 1);
+
+    this.eqSetEntryLeftControls.splice(index, 1);
+    this.eqSetEntryRightControls.splice(index, 1);
+    this.showSetEqMath.splice(index, 1);
+    this.mathMGU.splice(index, 1);
+    this.redrawMGU.splice(index, 1);
+  }
+
+  addToEqSet(index: number) {
+    try {
+      const termLeft = new Term(this.signature, this.allowedVariables, this.eqSetEntryLeftControls[index].value);
+      const termRight = new Term(this.signature, this.allowedVariables, this.eqSetEntryRightControls[index].value);
+      this.setsOfEquations[index].addEquation({ left: termLeft, right: termRight });
+      this.eqSetEntryLeftControls[index].reset();
+      this.eqSetEntryRightControls[index].reset();
+
+      this.mathMGU[index] = this.getMathUnification(this.setsOfEquations[index], index)
+      this.showSetEqMath[index] = false;
+      this.redrawMGU[index] = false;
+      setTimeout(() => { this.showSetEqMath[index] = true; this.redrawMGU[index] = true }, 100);
+    }
+    catch(err) { 
+      console.log(err);
+      return; 
+    }
+  }
+
+  isValidEqSetEntry(index: number) {
+    if (this.eqSetEntryLeftControls[index].invalid || this.eqSetEntryRightControls[index].invalid) return false;
+    return true;
+  }
+
+  getMathEquationsSet(setOfEquations: SetOfEquations, index: number): MathContent {
+    return {
+      latex: `$\\cdot$ $eqSet_{${index}} = ${setOfEquations.asLatexString()}$`
+    };
+  }
+
 
   ngOnInit(): void {
   }

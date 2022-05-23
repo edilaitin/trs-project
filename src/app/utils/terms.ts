@@ -10,7 +10,7 @@ export class Term {
     links: { id: string, source: string, target: string }[]
     signature: SignatureEntry[]
     allowedVariables: string[]
-    
+
     constructor(signature: SignatureEntry[], allowedVariables: string[], input: string, isRoot = true, parentPos = '', nth = 0) {
         this.signature = signature;
         this.allowedVariables = allowedVariables;
@@ -122,6 +122,16 @@ export class Term {
     // check if 2 terms are equal
     isEqual(term: Term) {
         return JSON.stringify(this.asArray) === JSON.stringify(term.asArray);
+    }
+
+    containsTerm(term: Term) {
+        if (this.isVariable()) return this.isEqual(term);
+        const size = _.size(this.asArray);
+        for (let pos = 1; pos < size; pos++) {
+            const subTerm = this.subTermAtPosition(pos);
+            if (subTerm.containsTerm(term)) return true;
+        }
+        return false;
     }
 }
 
