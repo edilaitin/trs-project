@@ -1,4 +1,4 @@
-import { SignatureEntry } from "../types";
+import { SignatureEntry } from "./types";
 import * as _ from 'lodash';
 const { v1: uuidv1 } = require('uuid');
 
@@ -57,7 +57,6 @@ export class Term {
 
         const id = uuidv1();
         const pos = isRoot ? 'e' : parentPos == 'e' ? nth.toString() : `${parentPos}${nth.toString()}`;
-        // console.log(subTerms);
         
         const parsedSubterms = _.map(subTerms, (subterm, index) => new Term(signature, allowedVariables, subterm, false, pos, index + 1));
 
@@ -136,22 +135,7 @@ export class Term {
             }
             return positions;
         }
-        // const loop = (term: Term, startPosition: string): string[] => {
-        //     console.log(startPosition);
-            
-        //     let positions: string[] = [];
-        //     if (startPosition === 'e') positions = ['e'];
-        //     const prefix = startPosition === 'e' ? '' : startPosition;
-        //     const size = _.size(this.asArray);
-        //     for (let pos = 0; pos < size; pos++) {
-        //         const subTerm = term.subTermAtPosition(pos);
-        //         positions = [...positions, `${prefix}${pos.toString()}`, ...loop(subTerm, `${prefix}${pos.toString()}`)]
-        //     }
-        //     return positions;
-        // }
-        
-        const positions = loop(this, true, '', 0);        
-
+        const positions = loop(this, true, '', 0);
         return positions
     }
 
@@ -236,6 +220,23 @@ export class Term {
         })
         return term;
     }
+
+    nrOfOccS(symbol: string): number {
+        let count = 0;
+        this.getNonVariableSubtermsPositions().forEach(v => {
+            if (v.term.asArray[0] === symbol) count++;
+        })
+        return count;
+    }
+
+    nrOfOccV(symbol: string): number {
+        let count = 0;
+        this.getVariableSubtermsPositions().forEach(v => {
+            if (v.term.asArray[0] === symbol) count++;
+        })
+        return count;
+    }
+
 }
 
 export function arrayToLatexArray(allowedVariables: string[], termArray: any[]): any[] {
