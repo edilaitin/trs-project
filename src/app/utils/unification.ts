@@ -1,4 +1,5 @@
 import * as _ from "lodash";
+import { Ordering } from "./ordering";
 import { Substitution, SubstitutionEntry } from "./substitutions";
 import { Term } from "./terms";
 
@@ -12,6 +13,10 @@ export class SetOfEquations {
 
     constructor(equations: Equation[] = []) {
         this.equations = equations;
+    }
+
+    isEmpty() {
+        return _.isEmpty(this.equations);
     }
 
     addEquation(equation: Equation) {
@@ -34,11 +39,13 @@ export class SetOfEquations {
         return `\\left\\{ ${_.map(this.equations, equation => `${equation.left.asLatexString()} \\stackrel{?}{=} ${equation.right.asLatexString()}`).join(',')}\\right\\}`;
     }
 
-    toSubstitution(): Substitution {
-        const entries: SubstitutionEntry[] = _.map(this.equations, eq => ({
-            from: eq.left,
-            to: eq.right
-        }));
+    toSubstitution(ordering: Ordering): Substitution {
+        const entries: SubstitutionEntry[] = _.map(this.equations, eq => {
+            return {
+                from: eq.left,
+                to: eq.right
+            }
+        });
         return new Substitution(entries);
     }
 
@@ -53,6 +60,45 @@ export class SetOfEquations {
             if (_.some(uniqueRightTerms, rt => rt.containsTerm(lt))) isSolved = false;
         })
         return isSolved;
+    }
+
+    getMatcher(ordering: Ordering): Substitution | false {
+        const loop = (eqSet: SetOfEquations, subst: Substitution): Substitution | false => {
+            if (eqSet.isEmpty()) return subst;
+            const index = 0;
+            const eq = eqSet.equations[index];
+            if (eq.left.isVariable()) {
+                if (subst.containsTerm(eq.left)) {
+                    if (subst.applyToTerm(eq.left).isEqual(eq.right)) {
+                        eqSet.removeEquation(index);
+                        return loop(eqSet, subst)
+                    } else {
+                        return false;
+                    }
+                } else {
+                    subst.addEntry({ from: eq.left, to: eq.right });
+                    eqSet.removeEquation(index);
+                    return loop(eqSet, subst);
+                }
+            } else if (!eq.left.isVariable() && eq.right.isVariable()) {
+                return false;
+            } else if (!eq.left.isVariable() && _.head(eq.left.asArray) === _.head(eq.right.asArray)) {
+                eqSet.removeEquation(index);
+                _.forEach(eq.left.asArray, (_ti, index2) => {
+                    if (index2 !== 0) {
+                        eqSet.addEquation({
+                            left: eq.left.subTermAtPosition(index2.toString()),
+                            right: eq.right.subTermAtPosition(index2.toString())
+                        })
+                    }
+                });
+                return loop(eqSet, subst);
+            }
+            return false;
+        }
+        const result = loop(this, new Substitution());
+        if (result !== false) return result;
+        else return false;
     }
 
     getMGU(): SetOfEquations | false {
@@ -74,8 +120,8 @@ export class SetOfEquations {
                         _.forEach(eq.left.asArray, (_ti, index2) => {
                             if (index2 !== 0) {
                                 copy.addEquation({
-                                    left: eq.left.subTermAtPosition(index2),
-                                    right: eq.right.subTermAtPosition(index2)
+                                    left: eq.left.subTermAtPosition(index2.toString()),
+                                    right: eq.right.subTermAtPosition(index2.toString())
                                 })
                             }
                         });

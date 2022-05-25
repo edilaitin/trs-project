@@ -57,6 +57,8 @@ export class Term {
 
         const id = uuidv1();
         const pos = isRoot ? 'e' : parentPos == 'e' ? nth.toString() : `${parentPos}${nth.toString()}`;
+        // console.log(subTerms);
+        
         const parsedSubterms = _.map(subTerms, (subterm, index) => new Term(signature, allowedVariables, subterm, false, pos, index + 1));
 
         this.id = id
@@ -79,21 +81,92 @@ export class Term {
     }
 
     isVariable() {
-        return _.size(this.asArray) === 1;
+        return _.size(this.asArray) === 1 && _.some(this.allowedVariables, v => {
+            const regExp = new RegExp(`^${v}\\d*$`);
+            return this.asArray[0].match(regExp);
+        });
+    }
+
+    private getSubtermsPosition(type: 'variable' | 'nonVariable'): { term: Term, pos: string }[] {
+        const positions = this.getPositions();
+        return _.compact(_.map(positions, position => {
+            if (position === 'e') {
+                if ((this.isVariable() && type === 'variable') || (!this.isVariable() && type === 'nonVariable')) {
+                    return { term: this, pos: position };
+                } else return undefined;
+            }
+            else {
+                const subTerm = this.subTermAtPosition(position);
+                if ((subTerm.isVariable() && type === 'variable') || (!subTerm.isVariable() && type === 'nonVariable')) {
+                    return { term: subTerm, pos: position };
+                } else return undefined;
+            }
+        }))
+    }
+
+    getVariableSubtermsPositions(): { term: Term, pos: string }[] {
+        return this.getSubtermsPosition('variable');
+    }
+
+    getNonVariableSubtermsPositions(): { term: Term, pos: string }[] {
+        return this.getSubtermsPosition('nonVariable');
+    }
+
+    getSubterms(): { term: Term, pos: string }[] {
+        const positions = this.getPositions();
+        return _.map(positions, position => {
+            if (position === 'e') return { term: this, pos: position };
+            else {                
+                const subTerm = this.subTermAtPosition(position);
+                return { term: subTerm, pos: position };
+            }
+        })
+    }
+
+    getPositions(): string[] {
+        const loop = (term: Term, isRoot: boolean, parentPos: string, nth: number): string[] => {
+            const pos = isRoot ? 'e' : parentPos == 'e' ? nth.toString() : `${parentPos}${nth.toString()}`;
+            
+            const size = _.size(term.asArray);
+            if (size === 1) return [pos];
+            let positions = [pos];
+            for (let i = 1; i < size; i++) {
+                const subTerm = term.subTermAtPosition(i.toString());
+                positions = [...positions, ...loop(subTerm, false, pos, i)]
+            }
+            return positions;
+        }
+        // const loop = (term: Term, startPosition: string): string[] => {
+        //     console.log(startPosition);
+            
+        //     let positions: string[] = [];
+        //     if (startPosition === 'e') positions = ['e'];
+        //     const prefix = startPosition === 'e' ? '' : startPosition;
+        //     const size = _.size(this.asArray);
+        //     for (let pos = 0; pos < size; pos++) {
+        //         const subTerm = term.subTermAtPosition(pos);
+        //         positions = [...positions, `${prefix}${pos.toString()}`, ...loop(subTerm, `${prefix}${pos.toString()}`)]
+        //     }
+        //     return positions;
+        // }
+        
+        const positions = loop(this, true, '', 0);        
+
+        return positions
     }
 
     asLatexString() {
         return arrayToString(arrayToLatexArray(this.allowedVariables, this.asArray));
     }
 
-    subTermAtPosition(pos: number): Term {
-        const newTermArray = _.get(_.cloneDeep(this.asArray), pos.toString().split('').map(Number))
+    subTermAtPosition(pos: string): Term {
+        const newTermArray = _.get(_.cloneDeep(this.asArray), pos.split('').map(Number))        
         return new Term(this.signature, this.allowedVariables, arrayToString(newTermArray))
     }
 
-    positionReplacement(replaceTerm: Term, position: number | string) {
-        if (position === 'e') return this;
-        const newTermArray = _.set(_.cloneDeep(this.asArray), position.toString().split('').map(Number), replaceTerm.asArray)
+    positionReplacement(replaceTerm: Term, position: string) {
+        if (position === 'e') return replaceTerm;
+        const newTermArray = _.set(_.cloneDeep(this.asArray), position.split('').map(Number), replaceTerm.asArray)
         const newTerm = new Term(this.signature, this.allowedVariables, arrayToString(newTermArray));
         return newTerm;
     }
@@ -102,7 +175,7 @@ export class Term {
         const loop = (termArray: any[], position: number, acc: string[]): string[] => {
             const positions = position.toString().split('').map(Number)
             const firstPos = _.head(positions) as number
-            const newTerm = this.subTermAtPosition(firstPos).asLatexString();
+            const newTerm = this.subTermAtPosition(firstPos.toString()).asLatexString();
             if (_.size(positions) > 1) {
                 const newAcc = [...acc, `{${newTerm}_{|}}_{${_.tail(positions).join('')}}`];
                 return loop(_.get(termArray, `${firstPos}`), _.toNumber(_.tail(positions).join('')), newAcc);
@@ -124,14 +197,44 @@ export class Term {
         return JSON.stringify(this.asArray) === JSON.stringify(term.asArray);
     }
 
+    getSize(): number {
+        const loop = (term: Term): number => {
+            if (term.isVariable()) return 1;
+            else {
+                const positions = _.size(term.asArray);
+                let sum = 1;
+                for (let i = 1; i < positions; i++) {                    
+                    sum += loop(term.subTermAtPosition(i.toString()));
+                }
+                return sum;
+            }
+        }
+        return loop(this);
+    }
+
     containsTerm(term: Term) {
         if (this.isVariable()) return this.isEqual(term);
         const size = _.size(this.asArray);
         for (let pos = 1; pos < size; pos++) {
-            const subTerm = this.subTermAtPosition(pos);
+            const subTerm = this.subTermAtPosition(_.toString(pos));
             if (subTerm.containsTerm(term)) return true;
         }
         return false;
+    }
+
+    renameVariableAtPos(pos: string) {
+        const subterm = pos === 'e' ? this.asString : this.subTermAtPosition(pos).asString; 
+        return this.positionReplacement(new Term(this.signature, this.allowedVariables, `${subterm}${Date.now()}`), pos);
+    }
+
+    renameVariableByName(name: string, rename: string) {
+        let term: Term = this;
+        _.forEach(term.getVariableSubtermsPositions(), v => {
+            if (v.term.asString === name) {
+                term = term.positionReplacement(new Term(this.signature, this.allowedVariables, rename), v.pos);
+            }
+        })
+        return term;
     }
 }
 

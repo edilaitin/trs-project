@@ -25,6 +25,10 @@ export class Substitution {
         return `\\left\\{ ${_.map(this.entries, entry => `${entry.from.asLatexString()} \\rightarrow ${entry.to.asLatexString()}`).join(',')}\\right\\}`;
     }
 
+    containsTerm(term: Term) {
+        return _.some(_.map(this.entries, entry => entry.from), fterm => fterm.containsTerm(term));
+    }
+
     applyToTerm(term: Term): Term {
         if (term.isVariable()) {
             const matchingEntry =_.find(this.entries, entry => {
@@ -35,8 +39,8 @@ export class Substitution {
         } else {
             const size = _.size(term.asArray);
             for (let pos = 1; pos < size; pos++) {
-                const subTerm = term.subTermAtPosition(pos);
-                term = term.positionReplacement(this.applyToTerm(subTerm), pos);
+                const subTerm = term.subTermAtPosition(pos.toString());
+                term = term.positionReplacement(this.applyToTerm(subTerm), pos.toString());
             }
             return term;
         }

@@ -7,7 +7,9 @@ import * as _ from 'lodash';
 import { Term } from '../utils/terms';
 import { ChangeDetectorRef } from '@angular/core';
 import { Substitution } from '../utils/substitutions';
-import { SetOfEquations } from '../utils/unification';
+import { Equation, SetOfEquations } from '../utils/unification';
+import { Ordering } from '../utils/ordering';
+import { completion } from '../utils/completion';
 
 @Component({
   selector: 'app-main',
@@ -275,7 +277,7 @@ export class MainComponent implements OnInit {
         }
       }
     }
-    catch(err) {
+    catch (err) {
       console.log(err);
       return {
         latex: `Error`
@@ -467,9 +469,9 @@ export class MainComponent implements OnInit {
       this.redrawMGU[index] = false;
       setTimeout(() => { this.showSetEqMath[index] = true; this.redrawMGU[index] = true }, 100);
     }
-    catch(err) { 
+    catch (err) {
       console.log(err);
-      return; 
+      return;
     }
   }
 
@@ -484,7 +486,41 @@ export class MainComponent implements OnInit {
     };
   }
 
+  completion() {
+    let signature: SignatureEntry[] = [
+      { symbol: '*', arity: 2 },
+      { symbol: 'i', arity: 1 },
+      { symbol: 'e', arity: 0 },
+    ]
+    let allowedVariables: string[] = ['x', 'y', 'z'];
 
+    const equations: Equation[] = [
+      {
+        left: new Term(signature, allowedVariables, '*(*(x,y), z)'),
+        right:  new Term(signature, allowedVariables, '*(x,*(y,z))'),
+      },
+      {
+        left: new Term(signature, allowedVariables, '*(i(x),x)'),
+        right:  new Term(signature, allowedVariables, 'e'),
+      },
+      {
+        left: new Term(signature, allowedVariables, '*(e, x)'),
+        right:  new Term(signature, allowedVariables, 'x'),
+      }
+    ];
+    const eqSet = new SetOfEquations(equations); 
+    const orderings = Ordering.getAllOrderings(signature);
+
+    // for(let order of orderings) {
+      const result = completion(eqSet, orderings[2]);
+      console.log("RESULTTTTTTTTTTTTTTTT");
+      console.log(result);
+      if (result !== 'Fail') {
+        return { order: orderings, trs: result }; 
+      }
+    // }
+    return 'FAIL';
+  } 
   ngOnInit(): void {
   }
 
