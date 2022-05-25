@@ -52,6 +52,7 @@ export class SetOfEquations {
     isSolvedForm(): boolean {
         const leftTerms = _.map(this.equations, eq => eq.left);
         const uniqueLeftTerms = _.uniqBy(leftTerms, t => t.asString);
+        if (_.size(leftTerms) !== _.size(uniqueLeftTerms)) return false;
         if (_.some(uniqueLeftTerms, lt => !lt.isVariable())) return false;
         const rightTerms = _.map(this.equations, eq => eq.right);
         const uniqueRightTerms = _.uniqBy(rightTerms, t => t.asString);
@@ -62,7 +63,7 @@ export class SetOfEquations {
         return isSolved;
     }
 
-    getMatcher(ordering: Ordering): Substitution | false {
+    getMatcher(): Substitution | false {
         const loop = (eqSet: SetOfEquations, subst: Substitution): Substitution | false => {
             if (eqSet.isEmpty()) return subst;
             const index = 0;
