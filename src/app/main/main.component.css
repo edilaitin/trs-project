@@ -42,3 +42,8 @@ ngx-graph {
 .add-subt-entry {
     margin-left: 10px;
 }
+
+.add-identity {
+    margin: 5px;
+    width: 100%;
+}

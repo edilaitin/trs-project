@@ -8,6 +8,10 @@ export interface Equation {
     right: Term
 }
 
+export const aslatexString = (eq: Equation) => {
+    return `${eq.left.asLatexString()} \\approx ${eq.right.asLatexString()}` 
+}
+
 export class SetOfEquations {
     equations: Equation[]
 
@@ -35,8 +39,14 @@ export class SetOfEquations {
         return { left: equation.right, right: equation.left }
     }
 
-    asLatexString(): string {
-        return `\\left\\{ ${_.map(this.equations, equation => `${equation.left.asLatexString()} \\stackrel{?}{=} ${equation.right.asLatexString()}`).join(',')}\\right\\}`;
+    asLatexString(sign: string): string {
+        const chunks = _.chunk(this.equations, 2);
+        return `\\left\\{ \\begin{align*} ${_.map(chunks, eqs =>
+            _.map(eqs, (equation, i) => i === 0 ?
+                `${equation.left.asLatexString()} &${sign} ${equation.right.asLatexString()}`
+                :
+                `${equation.left.asLatexString()} &${sign} ${equation.right.asLatexString()}`
+            ).join('&')).join('\\\\')} \\end{align*} \\right\\}`
     }
 
     toSubstitution(ordering: Ordering): Substitution {

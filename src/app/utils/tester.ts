@@ -41,7 +41,8 @@ const term2 = new Term(signature, allowedVariables, '*(i(i(x16534741542551653474
     const result = completion(eqSet, new Ordering(['i', '*', 'e'], [0, 0, 1], 1));
     console.log("RESULTTTTTTTTTTTTTTTT");
     console.log(result);
-    if (result != 'Fail' )console.log(JSON.stringify(result.rules.map(e => `${e.left.asString} = ${e.right.asString}`), null, 2));
+    if (result != 'Fail' )console.log(JSON.stringify(result.rules.rules.map(e => `${e.left.asString} = ${e.right.asString}`), null, 2));
+    
 
     if (result !== 'Fail') process.exit(0);
 // // // }

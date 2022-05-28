@@ -1,5 +1,4 @@
 <div fxLayout="column">
-    {{completion()}}
     <div fxLayout="row" fxLayoutAlign="space-around stretch">
         <div>
             <h3>Signature Definition</h3>
@@ -51,6 +50,52 @@
                 <button mat-raised-button color="primary" [disabled]="!isValidVariableEntry()"
                     (click)="addToVariables()">Add</button>
             </div>
+        </div>
+    </div>
+    <mat-divider></mat-divider>
+
+    <div fxLayout="column" fxLayoutAlign="space-around center">
+        <div class="terms">
+            <h3 align="center">Completion</h3>
+        </div>
+        <div class="mat-elevation-z0" fxLayout="row" fxLayoutAlign="space-between center" *ngIf="showIdentitiesMath">
+            <div class="symbol-def" [appMath]="getMathIdentities()"></div>
+        </div>
+        <mat-expansion-panel class="add-identity mat-elevation-z1">
+            <mat-expansion-panel-header>
+                Add identity
+            </mat-expansion-panel-header>
+
+            <mat-form-field class="add-subt-entry" appearance="fill">
+                <mat-label>Left</mat-label>
+                <input matInput type="text" placeholder="Ex: x" [formControl]="addLeftIdentityControl">
+            </mat-form-field>
+
+            <mat-form-field class="add-subt-entry" appearance="fill">
+                <mat-label>Right</mat-label>
+                <input matInput type="text" placeholder="Ex: f(z, y)" [formControl]="addRightIdentityControl">
+            </mat-form-field>
+
+            <button class="add-subt-entry" mat-raised-button color="primary" [disabled]="!isValidIdentity()"
+                (click)="addToIdentities()">Add</button>
+
+            <mat-error *ngIf="!isValidIdentity()">
+                <h4>Invalid identity</h4>
+            </mat-error>
+        </mat-expansion-panel>
+
+        <mat-expansion-panel class="add-identity mat-elevation-z1" (afterExpand)="completion()"
+            (afterCollapse)="hideMathCompletion()">
+            <mat-expansion-panel-header>
+                Evaluate completion
+            </mat-expansion-panel-header>
+            <div fxLayout="column" fxLayoutAlign="space-around center">
+                <mat-spinner *ngIf="displayMathCompletion === 'none'"></mat-spinner>
+            </div>
+            <div *ngIf="showMathCompletion" [style.display]="displayMathCompletion" [appMath]="mathCompletion"></div>
+        </mat-expansion-panel>
+        <div class="add-symbol" fxLayout="row" fxLayoutAlign="center center">
+            <button mat-raised-button color="warn" (click)="resetIdentities()">Reset identities</button>
         </div>
     </div>
 

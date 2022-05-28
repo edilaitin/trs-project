@@ -21,8 +21,13 @@ export class MathModule {
     config.type = 'text/x-mathjax-config';
     config.text = `
     MathJax.Hub.Config({
+        "fast-preview": {disabled:true},
         skipStartupTypeset: true,
-        tex2jax: { inlineMath: [["$", "$"]],displayMath:[["$$", "$$"]] }
+        tex2jax: { 
+          preview: "none",
+          inlineMath: [["$", "$"]],
+          displayMath:[["$$", "$$"]] 
+        }
       });
       MathJax.Hub.Register.StartupHook('End', () => {
         window.hubReady.next();

@@ -10,6 +10,10 @@ export class RewriteRule {
         this.right = right;
     }
 
+    asLatexString() {
+        return `${this.left.asLatexString()} \\rightarrow ${this.right.asLatexString()}`
+    }
+    
     getSize() {
         return this.left.getSize() + this.right.getSize();
     }

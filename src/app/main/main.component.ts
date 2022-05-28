@@ -19,11 +19,18 @@ import { completion } from '../utils/completion';
 export class MainComponent implements OnInit {
   symbolControl = new FormControl('', [Validators.pattern(/^[^(,)]*$/), Validators.required]);
   arrityControl = new FormControl(0, [Validators.min(0), Validators.required]);
+  addLeftIdentityControl = new FormControl('', [Validators.required]);
+  addRightIdentityControl = new FormControl('', [Validators.required]);
+
   variableControl = new FormControl('', [Validators.pattern(/^[^(,)\d]*$/), Validators.required]);
   termControl = new FormControl('', [Validators.required]);
 
   positionControls: FormControl[] = [];
   positionReplaceControls: FormControl[] = [];
+
+  mathCompletion: MathContent = { latex: "Empty" };
+  showMathCompletion: boolean = false;
+  displayMathCompletion: string = 'none';
 
   mathPositions: MathContent[] = [];
   mathPositionsReplace: MathContent[] = [];
@@ -57,15 +64,31 @@ export class MainComponent implements OnInit {
 
   showSubstMath: boolean[] = [];
   showSetEqMath: boolean[] = [];
+  showIdentitiesMath: boolean = true;
 
   constructor(private cd: ChangeDetectorRef) { }
 
   signature: SignatureEntry[] = [
-    { symbol: "f", arity: 2 },
-    { symbol: "i", arity: 1, },
-    { symbol: "e", arity: 0 }
+    { symbol: '*', arity: 2 },
+    { symbol: 'i', arity: 1 },
+    { symbol: 'e', arity: 0 },
   ]
   allowedVariables: string[] = ["x", "y", "z"];
+  identities: SetOfEquations = new SetOfEquations([
+    {
+      left: new Term(this.signature, this.allowedVariables, '*(*(x,y), z)'),
+      right: new Term(this.signature, this.allowedVariables, '*(x,*(y,z))'),
+    },
+    {
+      left: new Term(this.signature, this.allowedVariables, '*(i(x),x)'),
+      right: new Term(this.signature, this.allowedVariables, 'e'),
+    },
+    {
+      left: new Term(this.signature, this.allowedVariables, '*(e, x)'),
+      right: new Term(this.signature, this.allowedVariables, 'x'),
+    }
+  ]);
+
   terms: Term[] = [];
   substitutions: Substitution[] = [];
   setsOfEquations: SetOfEquations[] = [];
@@ -150,6 +173,33 @@ export class MainComponent implements OnInit {
     return true;
   }
 
+  isValidIdentity() {
+    if (this.addLeftIdentityControl.invalid || this.addRightIdentityControl.invalid) return false;
+    return true;
+  }
+
+  addToIdentities() {
+    try {
+      const termLeft = new Term(this.signature, this.allowedVariables, this.addLeftIdentityControl.value);
+      const termRight = new Term(this.signature, this.allowedVariables, this.addRightIdentityControl.value);
+      this.identities.addEquation({ left: termLeft, right: termRight })
+      this.showIdentitiesMath = false;
+      setTimeout(() => this.showIdentitiesMath = true, 100);
+      this.addLeftIdentityControl.reset();
+      this.addRightIdentityControl.reset();
+    }
+    catch (err) {
+      console.log(err);
+      return;
+    }
+  }
+
+  resetIdentities() {
+    this.identities = new SetOfEquations();
+    this.showIdentitiesMath = false;
+    setTimeout(() => this.showIdentitiesMath = true, 100);
+  }
+
   addToTerms() {
     const inputString = this.termControl.value;
     const term = new Term(this.signature, this.allowedVariables, inputString);
@@ -175,6 +225,12 @@ export class MainComponent implements OnInit {
     this.mathPositionsReplace.splice(index, 1);
     // reload data
     this.terms = _.cloneDeep(this.terms);
+  }
+
+  getMathIdentities(): MathContent {
+    return {
+      latex: `$E = ${this.identities.asLatexString(`\\approx`)}$`
+    };
   }
 
   getMathSymbol(def: SignatureEntry): MathContent {
@@ -269,7 +325,7 @@ export class MainComponent implements OnInit {
       const result = eqSet.getMGU();
       if (result) {
         return {
-          mathml: `$${result.asLatexString()}$`
+          mathml: `$${result.asLatexString('\\stackrel{?}{=}')}$`
         };
       } else {
         return {
@@ -482,45 +538,30 @@ export class MainComponent implements OnInit {
 
   getMathEquationsSet(setOfEquations: SetOfEquations, index: number): MathContent {
     return {
-      latex: `$\\cdot$ $eqSet_{${index}} = ${setOfEquations.asLatexString()}$`
+      latex: `$\\cdot$ $eqSet_{${index}} = ${setOfEquations.asLatexString('\\stackrel{?}{=}')}$`
     };
   }
 
-  completion() {
-    let signature: SignatureEntry[] = [
-      { symbol: '*', arity: 2 },
-      { symbol: 'i', arity: 1 },
-      { symbol: 'e', arity: 0 },
-    ]
-    let allowedVariables: string[] = ['x', 'y', 'z'];
+  hideMathCompletion() {
+    this.showMathCompletion = false;
+    this.mathCompletion = { latex: '' };
+    this.displayMathCompletion = 'none'
+  }
 
-    const equations: Equation[] = [
-      {
-        left: new Term(signature, allowedVariables, '*(*(x,y), z)'),
-        right:  new Term(signature, allowedVariables, '*(x,*(y,z))'),
-      },
-      {
-        left: new Term(signature, allowedVariables, '*(i(x),x)'),
-        right:  new Term(signature, allowedVariables, 'e'),
-      },
-      {
-        left: new Term(signature, allowedVariables, '*(e, x)'),
-        right:  new Term(signature, allowedVariables, 'x'),
-      }
-    ];
-    const eqSet = new SetOfEquations(equations); 
-    const orderings = Ordering.getAllOrderings(signature);
+  completion() {    
+    const result = completion(_.cloneDeep(this.identities), new Ordering(['i', '*', 'e'], [0, 0, 1], 1));
+    if (result.rules != 'Fail') {
+      this.mathCompletion = { latex: `${_.flatten(result.steps).join(`$\\\\$`)}` };
+      this.showMathCompletion = true;
+      setTimeout(() => { 
+        this.displayMathCompletion = ''
+      }, 10000) 
+    } else {
+      this.mathCompletion = { latex: 'FAIL' }
+      this.showMathCompletion = true;
+    }
+  }
 
-    // for(let order of orderings) {
-      const result = completion(eqSet, orderings[2]);
-      console.log("RESULTTTTTTTTTTTTTTTT");
-      console.log(result);
-      if (result !== 'Fail') {
-        return { order: orderings, trs: result }; 
-      }
-    // }
-    return 'FAIL';
-  } 
   ngOnInit(): void {
   }
 
