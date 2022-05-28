@@ -10,6 +10,7 @@ import { Substitution } from '../utils/substitutions';
 import { Equation, SetOfEquations } from '../utils/unification';
 import { Ordering } from '../utils/ordering';
 import { completion } from '../utils/completion';
+import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-main',
@@ -21,6 +22,8 @@ export class MainComponent implements OnInit {
   arrityControl = new FormControl(0, [Validators.min(0), Validators.required]);
   addLeftIdentityControl = new FormControl('', [Validators.required]);
   addRightIdentityControl = new FormControl('', [Validators.required]);
+
+  variablesWeight = new FormControl(1, [Validators.min(0), Validators.required])
 
   variableControl = new FormControl('', [Validators.pattern(/^[^(,)\d]*$/), Validators.required]);
   termControl = new FormControl('', [Validators.required]);
@@ -69,9 +72,9 @@ export class MainComponent implements OnInit {
   constructor(private cd: ChangeDetectorRef) { }
 
   signature: SignatureEntry[] = [
-    { symbol: '*', arity: 2 },
-    { symbol: 'i', arity: 1 },
-    { symbol: 'e', arity: 0 },
+    { symbol: 'i', arity: 1, weightControl: new FormControl(0, [Validators.min(0), Validators.required]) },
+    { symbol: '*', arity: 2, weightControl: new FormControl(0, [Validators.min(0), Validators.required]) },
+    { symbol: 'e', arity: 0, weightControl: new FormControl(1, [Validators.min(0), Validators.required]) },
   ]
   allowedVariables: string[] = ["x", "y", "z"];
   identities: SetOfEquations = new SetOfEquations([
@@ -120,7 +123,8 @@ export class MainComponent implements OnInit {
 
     this.signature.push({
       symbol: symbol,
-      arity: arrity
+      arity: arrity,
+      weightControl: new FormControl(0, [Validators.min(0), Validators.required])
     })
     this.symbolControl.reset();
     this.arrityControl.reset();
@@ -549,7 +553,10 @@ export class MainComponent implements OnInit {
   }
 
   completion() {    
-    const result = completion(_.cloneDeep(this.identities), new Ordering(['i', '*', 'e'], [0, 0, 1], 1));
+    const orderSymbols = _.map(this.signature, s => s.symbol);
+    const weights = _.map(this.signature, s => s.weightControl.value);
+    const variablesWeightVal = this.variablesWeight.valid ? this.variablesWeight.value : 1;
+    const result = completion(_.cloneDeep(this.identities), new Ordering(orderSymbols, weights, variablesWeightVal));
     if (result.rules != 'Fail') {
       this.mathCompletion = { latex: `${_.flatten(result.steps).join(`$\\\\$`)}` };
       this.showMathCompletion = true;
@@ -560,6 +567,10 @@ export class MainComponent implements OnInit {
       this.mathCompletion = { latex: 'FAIL' }
       this.showMathCompletion = true;
     }
+  }
+
+  drop(event: CdkDragDrop<SignatureEntry[]>) {
+    moveItemInArray(this.signature, event.previousIndex, event.currentIndex);
   }
 
   ngOnInit(): void {

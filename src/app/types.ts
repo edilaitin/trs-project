@@ -1,6 +1,9 @@
+import { FormControl } from "@angular/forms";
+
 export interface SignatureEntry {
     symbol: string,
-    arity: number
+    arity: number,
+    weightControl: FormControl
 }
 
 // export interface Term {

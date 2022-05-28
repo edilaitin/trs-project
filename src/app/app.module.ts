@@ -16,6 +16,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgxGraphModule } from '@swimlane/ngx-graph';
@@ -40,7 +41,8 @@ import { NgxGraphModule } from '@swimlane/ngx-graph';
     MatIconModule,
     NgxGraphModule,
     MatExpansionModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    DragDropModule
   ],
   providers: [],
   bootstrap: [AppComponent]

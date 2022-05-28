@@ -84,6 +84,30 @@
             </mat-error>
         </mat-expansion-panel>
 
+        <mat-expansion-panel class="add-identity mat-elevation-z1">
+            <mat-expansion-panel-header>
+                Ordering
+            </mat-expansion-panel-header>
+
+            <mat-form-field appearance="fill">
+                <mat-label>Variables Weight</mat-label>
+                <input matInput type="number" placeholder="Ex. 2" [formControl]="variablesWeight" min="0">
+                <mat-error *ngIf="variablesWeight.invalid">Min weight: 0</mat-error>
+            </mat-form-field>
+
+            <div cdkDropList class="example-list" (cdkDropListDropped)="drop($event)">
+                <div class="example-box" *ngFor="let definition of signature; let i = index" cdkDrag>
+                    <div class="symbol-def" [appMath]="getMathSymbol(definition)"></div>
+                    <mat-form-field appearance="fill">
+                        <mat-label>Weight</mat-label>
+                        <input matInput type="number" placeholder="Ex. 2" [formControl]="definition.weightControl" min="0">
+                        <mat-error *ngIf="definition.weightControl.invalid">Min weight: 0</mat-error>
+                    </mat-form-field>
+                </div>
+            </div>
+            <br> 
+        </mat-expansion-panel>
+
         <mat-expansion-panel class="add-identity mat-elevation-z1" (afterExpand)="completion()"
             (afterCollapse)="hideMathCompletion()">
             <mat-expansion-panel-header>

@@ -68,7 +68,7 @@ export function completion(E: SetOfEquations, ordering: Ordering): { rules: TRS 
             isMarkedMap.set(chosenRule, true);                                                                                                                                              substeps.push(` $\\quad \\quad \\bullet \\textrm{ Mark rule }$`)
         }                                                                                                                                                                                   substeps.push(`$ $`);steps.push(substeps);
     }
-    return { rules: R, steps: steps };
+    return { rules: R, steps: [[`$\\textbf{Resulting Term Rewrite System } : ${R.asLatexString()} \\\\$`], [`$ $`], ...steps] };
 }
 
 const existsUnmarkedRule = (isMarkedMap: Map<RewriteRule, boolean>) => {
