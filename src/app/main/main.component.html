@@ -116,7 +116,17 @@
             <div fxLayout="column" fxLayoutAlign="space-around center">
                 <mat-spinner *ngIf="displayMathCompletion === 'none'"></mat-spinner>
             </div>
-            <div *ngIf="showMathCompletion" [style.display]="displayMathCompletion" [appMath]="mathCompletion"></div>
+            <div *ngIf="showMathCompletion" [style.display]="displayMathCompletion" [appMath]="mathCompletion[0]"></div>
+            <mat-accordion  [multi]="false">
+                <mat-expansion-panel *ngFor="let mathStep of mathCompletion; let i = index" >
+                    <mat-expansion-panel-header *ngIf="i !== 0">
+                        Step {{i}}
+                    </mat-expansion-panel-header>
+                    <ng-template matExpansionPanelContent *ngIf="i !== 0">
+                        <div *ngIf="showMathCompletion" [style.display]="displayMathCompletion" [appMath]="mathStep"></div>
+                    </ng-template>
+                </mat-expansion-panel>
+            </mat-accordion>
         </mat-expansion-panel>
         <div class="add-symbol" fxLayout="row" fxLayoutAlign="center center">
             <button mat-raised-button color="warn" (click)="resetIdentities()">Reset identities</button>

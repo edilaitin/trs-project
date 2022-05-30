@@ -41,7 +41,7 @@ export function completion(E: SetOfEquations, ordering: Ordering): { rules: TRS 
                         isMarkedMap.set(newRule, isMarkedMap.get(rule)!);
                         isMarkedMap.delete(rule);
                     } else {                                                                                                             
-                        const eq: Equation = { left: gPrime, right: d };                                                                                                                    substeps.push(` $\\quad \\quad \\quad \\quad \\diamond \\textrm{ } g' = g  \\implies \\textrm { g can be reduced with } l \\rightarrow r $`)
+                        const eq: Equation = { left: gPrime, right: d };                                                                                                                    substeps.push(` $\\quad \\quad \\quad \\quad \\diamond \\textrm{ } g' \\neq g  \\implies \\textrm { g can be reduced with } l \\rightarrow r $`)
                         isMarkedMap.delete(rule);
                         E.addEquation(eq);                                                                                                                                                  substeps.push(` $\\quad \\quad \\quad \\quad \\quad $-$ \\textrm{ Add equation: } ${aslatexString(eq)} \\textrm { to E }$`)
                     }
@@ -68,7 +68,7 @@ export function completion(E: SetOfEquations, ordering: Ordering): { rules: TRS 
             isMarkedMap.set(chosenRule, true);                                                                                                                                              substeps.push(` $\\quad \\quad \\bullet \\textrm{ Mark rule }$`)
         }                                                                                                                                                                                   substeps.push(`$ $`);steps.push(substeps);
     }
-    return { rules: R, steps: [[`$\\textbf{Resulting Term Rewrite System } : ${R.asLatexString()} \\\\$`], [`$ $`], ...steps] };
+    return { rules: R, steps: [[`$\\textbf{Resulting Term Rewrite System } : ${R.asLatexString()} \\\\$`], ...steps] };
 }
 
 const existsUnmarkedRule = (isMarkedMap: Map<RewriteRule, boolean>) => {

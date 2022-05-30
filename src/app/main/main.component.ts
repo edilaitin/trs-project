@@ -31,7 +31,7 @@ export class MainComponent implements OnInit {
   positionControls: FormControl[] = [];
   positionReplaceControls: FormControl[] = [];
 
-  mathCompletion: MathContent = { latex: "Empty" };
+  mathCompletion: MathContent[] = [{ latex: "Empty" }];
   showMathCompletion: boolean = false;
   displayMathCompletion: string = 'none';
 
@@ -548,23 +548,25 @@ export class MainComponent implements OnInit {
 
   hideMathCompletion() {
     this.showMathCompletion = false;
-    this.mathCompletion = { latex: '' };
+    this.mathCompletion = [{ latex: '' }];
     this.displayMathCompletion = 'none'
   }
 
-  completion() {    
+  completion() {
     const orderSymbols = _.map(this.signature, s => s.symbol);
     const weights = _.map(this.signature, s => s.weightControl.value);
     const variablesWeightVal = this.variablesWeight.valid ? this.variablesWeight.value : 1;
     const result = completion(_.cloneDeep(this.identities), new Ordering(orderSymbols, weights, variablesWeightVal));
     if (result.rules != 'Fail') {
-      this.mathCompletion = { latex: `${_.flatten(result.steps).join(`$\\\\$`)}` };
+      this.mathCompletion = _.map(result.steps, step => ({ latex: step.join(`$\\\\$`) }));
+      console.log(this.mathCompletion[1]);
+      
       this.showMathCompletion = true;
-      setTimeout(() => { 
+      setTimeout(() => {
         this.displayMathCompletion = ''
-      }, 10000) 
+      }, 100)
     } else {
-      this.mathCompletion = { latex: 'FAIL' }
+      this.mathCompletion = [{ latex: 'FAIL' }]
       this.showMathCompletion = true;
     }
   }
